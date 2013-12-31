@@ -49,12 +49,20 @@
   (--first (s-match (format "#<window %s[^>]+>" number) (prin1-to-string it))
            (window-list)))
 
-(defun elmacro-prin1-to-string (obj)
+(defun elmacro-object-to-string (obj)
   "Print OBJ like `prin1-to-string' but handle windows, buffers, etc."
-  (let* ((str (prin1-to-string obj))
-         (str (replace-regexp-in-string "#<window \\([0-9]+\\)[^>]+>" "(elmacro-get-window-object \\1)" str))
-         (str (replace-regexp-in-string "(quote" "(backquote" str)))
-    str))
+  (let* ((print-quoted t)
+         (str (prin1-to-string obj)))
+
+    ;; Handle #<window> objects
+    (when (s-contains? "#<window" str)
+         (setq str (replace-regexp-in-string "#<window \\([0-9]+\\)[^>]+>" ",(elmacro-get-window-object \\1)" str))
+         (setq str (replace-regexp-in-string "'(" "`(" str)))
+
+    ;; Prettify last-command-event
+    (if (string-match "(setq last-command-event \\([0-9]+\\))" str)
+        (replace-match (format "?%s" (string (string-to-number (match-string 1 str)))) t t str 1)
+      str)))
 
 (defun elmacro-show-defun (name commands)
   (let ((buffer (get-buffer-create (format "* elmacro - %s.el *" name))))
@@ -63,7 +71,7 @@
     (insert (format "(defun %s ()\n" name))
     (insert "\"Change me!\"\n")
     (insert "(interactive)\n")
-    (insert (mapconcat 'elmacro-prin1-to-string commands "\n"))
+    (insert (mapconcat 'elmacro-object-to-string commands "\n"))
     (insert ")\n")
     (emacs-lisp-mode)
     (indent-region (point-min) (point-max))
