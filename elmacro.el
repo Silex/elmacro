@@ -19,6 +19,12 @@
   (--each (elmacro-transform-command (car command-history))
     (!cons it elmacro-recorded-commands)))
 
+(defun elmacro-last-command-event ()
+  "Return form setting up `last-command-event'."
+  (if (symbolp last-command-event)
+      `(setq last-command-event ',last-command-event)
+    `(setq last-command-event ,last-command-event)))
+
 (defun elmacro-transform-command (cmd)
   "Process CMD into something more suitable if needed."
   (let* ((func (car cmd))
@@ -27,7 +33,7 @@
            (unless (minibufferp)
              `((insert ,(string last-command-event)))))
           ((-contains? commands-with-input func)
-           `((setq last-command-event ,last-command-event)
+           `(,(elmacro-last-command-event)
              ,cmd))
           ((eq t t)
            `(,cmd)))))
