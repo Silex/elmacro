@@ -1,8 +1,5 @@
 ;; TODO Make a minor mode?
 ;; TODO Write documentation M-x checkdoc
-;; TODO Handle isearch properly
-;; TODO (defvar elmacro-filter '(smex isearch))
-;; TODO (defvar elmacro-make-last-command-event '(isearch-printing-char))
 ;; TODO M-x elmacro-set-logging 'always or 'on-macro
 ;; TODO extract macro with start-kbd-macro instead of kmacro-start-macro?
 ;; TODO (defvar elmacro-store-all-commands 'always)
@@ -12,31 +9,51 @@
 (require 'dash)
 
 (defvar elmacro-recorded-commands '())
-(defvar elmacro-commands-with-input '(isearch-printing-char isearch-other-control-char))
+(defvar elmacro-filters '(ido smex isearch))
 
 (defun elmacro-process-latest-command ()
   "Process the latest command of variable `command-history' into `elmacro-recorded-commands'."
   (--each (elmacro-transform-command (car command-history))
     (!cons it elmacro-recorded-commands)))
 
+(defun elmacro-transform-command (cmd)
+  "Transform CMD into a list of one or more modified commands if needed."
+  (let* ((func (car cmd)))
+    (cond
+     ;; Transform self-insert-command (if not in minibuffer)
+     ((equal func 'self-insert-command)
+      (if (not (minibufferp))
+          `((insert ,(string last-command-event)))))
+
+     ;; Filter ido
+     ((and (s-starts-with? "ido" (symbol-name func)) (-contains? elmacro-filters 'ido))
+      '())
+
+     ;; Filter smex
+     ((and (s-starts-with? "smex" (symbol-name func)) (-contains? elmacro-filters 'smex))
+      '())
+
+     ;; Filter isearch
+     ((and (s-starts-with? "isearch" (symbol-name func)) (-contains? elmacro-filters 'isearch))
+      (case func
+        ;; isearch-printing-char needs last-command-event
+        (isearch-printing-char
+         (list (elmacro-last-command-event) cmd))
+        ;; isearch-other-control-char should be ignored, it only triggers other isearch commands
+        (isearch-other-control-char
+         '())
+        (otherwise
+         (list cmd))))
+
+     ;; Default
+     (t
+      (list cmd)))))
+
 (defun elmacro-last-command-event ()
   "Return form setting up `last-command-event'."
   (if (symbolp last-command-event)
       `(setq last-command-event ',last-command-event)
     `(setq last-command-event ,last-command-event)))
-
-(defun elmacro-transform-command (cmd)
-  "Process CMD into something more suitable if needed."
-  (let* ((func (car cmd))
-         (commands-with-input '(isearch-printing-char isearch-other-control-char)))
-    (cond ((equal func 'self-insert-command)
-           (unless (minibufferp)
-             `((insert ,(string last-command-event)))))
-          ((-contains? commands-with-input func)
-           `(,(elmacro-last-command-event)
-             ,cmd))
-          ((eq t t)
-           `(,cmd)))))
 
 (defun elmacro-extract-last-kbd-macro (commands)
   "Extract the last keyboard macro from COMMANDS."
