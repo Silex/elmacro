@@ -7,8 +7,18 @@
 (require 's)
 (require 'dash)
 
-(defvar elmacro-recorded-commands '())
-(defvar elmacro-filters '(ido smex isearch))
+(defgroup elmacro nil
+  "Show macros as emacs lisp."
+  :group 'keyboard
+  :group 'convenience)
+
+(defvar elmacro-recorded-commands '()
+  "Where elmacro process commands from variable `command-history'.")
+
+(defcustom elmacro-filters '(ido smex isearch)
+  "List of symbols representing packages to filter."
+  :group 'elmacro
+  :type '(repeat symbol))
 
 (defun elmacro-process-latest-command ()
   "Process the latest command of variable `command-history' into `elmacro-recorded-commands'."
