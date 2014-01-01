@@ -1,9 +1,3 @@
-;; TODO Write documentation M-x checkdoc
-;; TODO M-x elmacro-set-logging 'always or 'on-macro
-;; TODO extract macro with start-kbd-macro instead of kmacro-start-macro?
-;; TODO (defvar elmacro-store-all-commands 'always)
-;; TODO MELPA / Cask?
-
 (require 's)
 (require 'dash)
 
