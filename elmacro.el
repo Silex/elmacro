@@ -1,4 +1,3 @@
-;; TODO Make a minor mode?
 ;; TODO Write documentation M-x checkdoc
 ;; TODO M-x elmacro-set-logging 'always or 'on-macro
 ;; TODO extract macro with start-kbd-macro instead of kmacro-start-macro?
@@ -105,8 +104,21 @@
   (interactive)
   (elmacro-show-defun "lossage" (reverse (-take 300 elmacro-recorded-commands))))
 
-(defadvice call-interactively (before elmacro-record-command (func &optional record keys) activate)
-  "Always save whatever is called interactively in `command-history'."
-  (setq record t))
+(define-minor-mode elmacro-mode
+  "Toggle elmacro mode."
+  nil
+  " elmacro"
+  nil
+  :global t
+  :group 'elmacro
+  (if elmacro-mode
+      (progn
+        (defadvice call-interactively (before elmacro-save-all-commands (func &optional record keys) activate)
+          "Always save whatever is called interactively in `command-history'."
+          (setq record t))
+        (add-hook 'post-command-hook 'elmacro-process-latest-command))
+    (progn
+      (ad-remove-advice 'call-interactively 'before 'elmacro-save-all-commands)
+      (remove-hook 'post-command-hook 'elmacro-process-latest-command))))
 
-(add-hook 'post-command-hook 'elmacro-process-latest-command)
+(provide 'elmacro-mode)
