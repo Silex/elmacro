@@ -126,16 +126,19 @@
     (pop-to-buffer buffer)
     (goto-line 1)))
 
+;;;###autoload
 (defun elmacro-show-last-macro (name)
   "Show the last macro as elisp."
   (interactive "sMacro name: ")
   (elmacro-show-defun name (reverse (elmacro-extract-last-kbd-macro elmacro-recorded-commands))))
 
+;;;###autoload
 (defun elmacro-show-lossage ()
   "Show lossage as elisp."
   (interactive)
   (elmacro-show-defun "lossage" (reverse (-take 300 elmacro-recorded-commands))))
 
+;;;###autoload
 (define-minor-mode elmacro-mode
   "Toggle elmacro mode."
   nil
