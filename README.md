@@ -4,7 +4,7 @@ Show recorded macro as emacs lisp function.
 
 Set it up like this:
 
-``` scheme
+``` emacs-lisp
 (require 'elmacro)
 (elmacro-mode)
 ```
@@ -26,7 +26,7 @@ With the cursor somewhere on the first line. Press the following keys:
 
 Then doing `M-x elmacro-show-last-macro upcase-last-word RET` produces a buffer with:
 
-``` scheme
+``` emacs-lisp
 (defun upcase-last-word ()
   "Change me!"
   (interactive)
