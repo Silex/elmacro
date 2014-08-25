@@ -9,11 +9,11 @@ Set it up like this:
 (elmacro-mode)
 ```
 
-Then record a macro and `M-x elmacro-show-last-macro` or `M-x elmacro-show-lossage`.
+Then record a macro and use `M-x elmacro-show-last-macro` or `M-x elmacro-show-lossage`.
 
 ## Examples
 
-### capitalize-last-word
+### upcase-last-word
 
 Say you have the following text:
 
@@ -24,10 +24,10 @@ With the cursor somewhere on the first line. Press the following keys:
 
 `F3 C-e M-b M-u C-a C-n F4`
 
-Then calling `M-x elmacro-show-last-macro capitalize-line-last-word RET` produces a buffer with:
+Then doing `M-x elmacro-show-last-macro upcase-last-word RET` produces a buffer with:
 
 ``` scheme
-(defun capitalize-line-last-word ()
+(defun upcase-last-word ()
   "Change me!"
   (interactive)
   (move-end-of-line 1)
@@ -37,4 +37,4 @@ Then calling `M-x elmacro-show-last-macro capitalize-line-last-word RET` produce
   (next-line 1 1))
 ```
 
-You can now use `capitalize-line-last-word` in your emacs lisp code :)
+You can now do `M-x upcase-last-word` or call it from your elisp code :)
