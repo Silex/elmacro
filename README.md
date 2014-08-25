@@ -22,7 +22,7 @@ Say you have the following text:
 
 With the cursor somewhere on the first line. Press the following keys:
 
-`C-x ( C-e M-b M-u M-a C-n C-x )`
+`F3 C-e M-b M-u C-a C-n F4`
 
 Then calling `M-x elmacro-show-last-macro capitalize-line-last-word RET` produces a buffer with:
 
