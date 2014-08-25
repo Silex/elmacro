@@ -80,7 +80,7 @@
       (list cmd)))))
 
 (defun elmacro-last-command-event ()
-  "Return form setting up `last-command-event'."
+  "Return an expression setting up `last-command-event'."
   (if (symbolp last-command-event)
       `(setq last-command-event ',last-command-event)
     `(setq last-command-event ,last-command-event)))
@@ -104,8 +104,8 @@
 
     ;; Handle #<window> objects
     (when (s-contains? "#<window" str)
-         (setq str (replace-regexp-in-string "#<window \\([0-9]+\\)[^>]+>" ",(elmacro-get-window-object \\1)" str))
-         (setq str (replace-regexp-in-string "'(" "`(" str)))
+      (setq str (replace-regexp-in-string "#<window \\([0-9]+\\)[^>]+>" ",(elmacro-get-window-object \\1)" str))
+      (setq str (replace-regexp-in-string "'(" "`(" str)))
 
     ;; Prettify last-command-event
     (if (string-match "(setq last-command-event \\([0-9]+\\))" str)
@@ -113,6 +113,7 @@
       str)))
 
 (defun elmacro-show-defun (name commands)
+  "Create a buffer NAME containing a defun from COMMANDS."
   (let ((buffer (get-buffer-create (format "* elmacro - %s.el *" name))))
     (set-buffer buffer)
     (erase-buffer)
@@ -140,7 +141,7 @@
 
 ;;;###autoload
 (defun elmacro-show-last-macro (name)
-  "Show the last macro as elisp."
+  "Show the last macro as elisp with NAME."
   (interactive "sMacro name: ")
   (elmacro-show-defun name (reverse (elmacro-extract-last-kbd-macro elmacro-recorded-commands))))
 
