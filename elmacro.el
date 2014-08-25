@@ -60,9 +60,10 @@
 
 (defun elmacro-extract-last-kbd-macro (commands)
   "Extract the last keyboard macro from COMMANDS."
-  (-drop 1 (--take-while (not (equal it '(kmacro-start-macro nil)))
-                         (--drop-while (not (equal it '(kmacro-end-macro nil)))
-                                       commands))))
+  (let ((starters '(start-kbd-macro kmacro-start-macro kmacro-start-macro-or-insert-counter))
+        (finishers '(end-kbd-macro kmacro-end-macro kmacro-end-or-call-macro kmacro-end-and-call-macro)))
+    (-drop 1 (--take-while (not (-contains? starters (car it)))
+                           (--drop-while (not (-contains? finishers (car it))) commands)))))
 
 (defun elmacro-get-window-object (number)
   "Return the window object numbered NUMBER."
