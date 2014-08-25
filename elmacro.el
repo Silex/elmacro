@@ -126,6 +126,18 @@
     (pop-to-buffer buffer)
     (goto-line 1)))
 
+(defun elmacro-on ()
+  "Turn elmacro mode on."
+  (defadvice call-interactively (before elmacro-save-all-commands (func &optional record keys) activate)
+    "Always save whatever is called interactively in `command-history'."
+    (setq record t))
+  (add-hook 'post-command-hook 'elmacro-process-latest-command))
+
+(defun elmacro-off ()
+  "Turn elmacro mode off."
+  (ad-remove-advice 'call-interactively 'before 'elmacro-save-all-commands)
+  (remove-hook 'post-command-hook 'elmacro-process-latest-command))
+
 ;;;###autoload
 (defun elmacro-show-last-macro (name)
   "Show the last macro as elisp."
@@ -147,15 +159,9 @@
   :global t
   :group 'elmacro
   (if elmacro-mode
-      (progn
-        (defadvice call-interactively (before elmacro-save-all-commands (func &optional record keys) activate)
-          "Always save whatever is called interactively in `command-history'."
-          (setq record t))
-        (add-hook 'post-command-hook 'elmacro-process-latest-command))
-    (progn
-      (ad-remove-advice 'call-interactively 'before 'elmacro-save-all-commands)
-      (remove-hook 'post-command-hook 'elmacro-process-latest-command))))
+      (elmacro-on)
+    (elmacro-off)))
 
-(provide 'elmacro-mode)
+(provide 'elmacro)
 
 ;;; elmacro.el ends here
