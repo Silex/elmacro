@@ -1,6 +1,6 @@
 # elmacro
 
-Show recorded macro as emacs lisp function.
+Show keyboard macros as emacs lisp.
 
 Set it up like this:
 
@@ -9,7 +9,7 @@ Set it up like this:
 (elmacro-mode)
 ```
 
-Then record a macro and use `M-x elmacro-show-last-macro` or `M-x elmacro-show-lossage`.
+Then record a keyboard macro and use `M-x elmacro-show-last-macro` or `M-x elmacro-show-lossage`.
 
 ## Examples
 
