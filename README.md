@@ -38,3 +38,8 @@ Then doing `M-x elmacro-show-last-macro upcase-last-word RET` produces a buffer 
 ```
 
 You can now do `M-x upcase-last-word` or call it from your elisp code :)
+
+## Contributions are welcome!
+
+Either as suggestions or as pull requests by opening tickets on the
+[issue tracker](https://github.com/Silex/elmacro/issues).
