@@ -1,4 +1,4 @@
-;;; elmacro.el --- convert macro to elisp
+;;; elmacro.el --- Convert keyboard macros to elisp
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/elmacro
