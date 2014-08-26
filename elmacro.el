@@ -4,7 +4,7 @@
 ;; URL: https://github.com/Silex/elmacro
 ;; Keywords: macro, elisp, convenience
 ;; Version: 0.0.1
-;; Package-Requires: ((s "1.9.0") (dash "1.5.0"))
+;; Package-Requires: ((s "1.9.0") (dash "1.5.0") (cl-lib "0.5"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -27,6 +27,7 @@
 
 (require 's)
 (require 'dash)
+(require 'cl-lib)
 
 (defgroup elmacro nil
   "Show macros as emacs lisp."
@@ -65,7 +66,7 @@
 
      ;; Filter isearch
      ((and (s-starts-with? "isearch" (symbol-name func)) (-contains? elmacro-filters 'isearch))
-      (case func
+      (cl-case func
         ;; isearch-printing-char needs last-command-event
         (isearch-printing-char
          (list (elmacro-last-command-event) cmd))
@@ -125,7 +126,7 @@
     (emacs-lisp-mode)
     (indent-region (point-min) (point-max))
     (pop-to-buffer buffer)
-    (goto-line 1)))
+    (goto-char (point-min))))
 
 (defun elmacro-on ()
   "Turn elmacro mode on."
