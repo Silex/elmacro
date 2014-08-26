@@ -42,6 +42,11 @@
   :group 'elmacro
   :type '(repeat symbol))
 
+(defcustom elmacro-concatenate-multiple-inserts t
+  "Wether to concatenate multiple `insert' or not."
+  :group 'elmacro
+  :type 'boolean)
+
 (defun elmacro-process-latest-command ()
   "Process the latest command of variable `command-history' into `elmacro-recorded-commands'."
   (--each (elmacro-transform-command (car command-history))
@@ -53,8 +58,17 @@
     (cond
      ;; Transform self-insert-command (if not in minibuffer)
      ((equal func 'self-insert-command)
-      (if (not (minibufferp))
-          `((insert ,(string last-command-event)))))
+      (unless (minibufferp)
+        (let ((previous-command (car elmacro-recorded-commands))
+              (character (string last-command-event)))
+          ;; TODO maybe do this as post-processing instead, that way we
+          ;; can also detect backspaces and delete accordingly
+          (if (or (not elmacro-concatenate-multiple-inserts)
+                  (not (equal 'insert (car previous-command))))
+              `((insert ,character))
+            (setcdr previous-command
+                    (list (concat (cadr previous-command) character)))
+            nil))))
 
      ;; Filter ido
      ((and (s-starts-with? "ido" (symbol-name func)) (-contains? elmacro-filters 'ido))
