@@ -39,6 +39,26 @@ Then doing `M-x elmacro-show-last-macro upcase-last-word RET` produces a buffer 
 
 You can now do `M-x upcase-last-word` or call it from your elisp code :)
 
+## Options
+
+* `elmacro-concatenate-multiple-inserts` (default value: `t`)
+
+  When enabled, will concatenate multiple text insertion together, so instead of:
+
+  ``` emacs-lisp
+  (defun abc ()
+    (insert "a")
+    (insert "b")
+    (insert "c"))
+  ```
+
+  You get:
+
+  ``` emacs-lisp
+  (defun abc ()
+    (insert "abc"))
+  ```
+
 ## Contributions are welcome!
 
 Either as suggestions or as pull requests by opening tickets on the
