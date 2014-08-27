@@ -142,14 +142,14 @@
     (pop-to-buffer buffer)
     (goto-char (point-min))))
 
-(defun elmacro-on ()
+(defun elmacro-mode-on ()
   "Turn elmacro mode on."
   (defadvice call-interactively (before elmacro-save-all-commands (func &optional record keys) activate)
     "Always save whatever is called interactively in the variable `command-history'."
     (setq record t))
   (add-hook 'post-command-hook 'elmacro-process-latest-command))
 
-(defun elmacro-off ()
+(defun elmacro-mode-off ()
   "Turn elmacro mode off."
   (ad-remove-advice 'call-interactively 'before 'elmacro-save-all-commands)
   (remove-hook 'post-command-hook 'elmacro-process-latest-command))
@@ -175,8 +175,8 @@
   :global t
   :group 'elmacro
   (if elmacro-mode
-      (elmacro-on)
-    (elmacro-off)))
+      (elmacro-mode-on)
+    (elmacro-mode-off)))
 
 (provide 'elmacro)
 
