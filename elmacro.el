@@ -145,7 +145,7 @@
 (defun elmacro-on ()
   "Turn elmacro mode on."
   (defadvice call-interactively (before elmacro-save-all-commands (func &optional record keys) activate)
-    "Always save whatever is called interactively in `command-history'."
+    "Always save whatever is called interactively in the variable `command-history'."
     (setq record t))
   (add-hook 'post-command-hook 'elmacro-process-latest-command))
 
