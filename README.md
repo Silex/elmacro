@@ -1,15 +1,26 @@
 # elmacro
 
-Shows keyboard macros as emacs lisp.
+Shows keyboard macros or latest interactive commands as emacs lisp.
 
-Set it up like this:
+## Installation
+
+The recommended way to install elmacro is through MELPA.
+
+Otherwise, simply add `elmacro.el` to your load-path and then `(require 'elmacro)`.
+
+## Usage
+
+To enable elmacro, do `M-x elmacro-mode` or enable it from your config file like this:
 
 ``` emacs-lisp
-(require 'elmacro)
-(elmacro-mode)
+(elmacro-mode 1)
 ```
 
-Then record a keyboard macro and use `M-x elmacro-show-last-macro` or `M-x elmacro-show-lossage`.
+From now on, at any point you can use `M-x elmacro-show-lossage` to see your latest
+emacs activity as emacs lisp. This is more or less a better version of `kmacro-edit-lossage`.
+
+You can also record a [keyboard macro](https://www.gnu.org/software/emacs/manual/html_node/emacs/Keyboard-Macros.html)
+and use `M-x elmacro-show-last-macro` to see it as emacs lisp.
 
 ## Examples
 
