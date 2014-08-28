@@ -3,7 +3,7 @@
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/elmacro
 ;; Keywords: macro, elisp, convenience
-;; Version: 0.0.1
+;; Version: 0.1.0
 ;; Package-Requires: ((s "1.9.0") (dash "1.5.0") (cl-lib "0.5"))
 
 ;; This file is NOT part of GNU Emacs.
