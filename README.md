@@ -1,6 +1,6 @@
 # elmacro
 
-Show keyboard macros as emacs lisp.
+Shows keyboard macros as emacs lisp.
 
 Set it up like this:
 
@@ -41,6 +41,16 @@ You can now do `M-x upcase-last-word` or call it from your elisp code :)
 
 ## Options
 
+* `elmacro-custom-recorded-functions`
+
+   This is a list of non-interactive functions that you also want to
+   be recorded.
+
+   For example, `dired-copy-file` (`C` key in dired)
+   doesn't reads its arguments as an interactive specification, and
+   thus the file name is never stored. Adding `copy-file` to
+   `elmacro-custom-recorded-functions` solves this.
+
 * `elmacro-concatenate-multiple-inserts` (default value: `t`)
 
   When enabled, will concatenate multiple text insertion together, so instead of:
@@ -63,3 +73,7 @@ You can now do `M-x upcase-last-word` or call it from your elisp code :)
 
 Either as suggestions or as pull requests by opening tickets on the
 [issue tracker](https://github.com/Silex/elmacro/issues).
+
+## Thanks
+
+Thanks to [Youngfrog](https://github.com/YoungFrog) for helping me with `elmacro-make-advice-lambda`
