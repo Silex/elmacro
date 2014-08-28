@@ -76,4 +76,6 @@ Either as suggestions or as pull requests by opening tickets on the
 
 ## Thanks
 
-Thanks to [Youngfrog](https://github.com/YoungFrog) for helping me with `elmacro-make-advice-lambda`
+* [purcell](https://github.com/purcell) for better package description.
+* [syohex](https://github.com/syohex) for byte-compilation issues.
+* [Youngfrog](https://github.com/YoungFrog) for helping with `elmacro-make-advice-lambda`
