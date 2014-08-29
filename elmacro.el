@@ -180,7 +180,10 @@
 (defun elmacro-show-last-macro (name)
   "Show the last macro as elisp with NAME."
   (interactive "sMacro name: ")
-  (elmacro-show-defun name (reverse (elmacro-extract-last-kbd-macro elmacro-recorded-commands))))
+  (let ((macro-commands (reverse (elmacro-extract-last-kbd-macro elmacro-recorded-commands))))
+    (if macro-commands
+        (elmacro-show-defun name macro-commands)
+      (message "You have to record a macro before using this command (F3/f4)."))))
 
 ;;;###autoload
 (defun elmacro-show-lossage ()
