@@ -52,6 +52,13 @@
   :group 'elmacro
   :type '(repeat symbol))
 
+(defcustom elmacro-objects-to-convert '(frame window buffer)
+  "List of symbols representing which object to convert.
+
+For example, converts <#window 42> to (elmacro-get-window-object 42)."
+  :group 'elmacro
+  :type '(repeat symbol))
+
 (defcustom elmacro-concatenate-multiple-inserts t
   "Wether to concatenate multiple `insert' or not."
   :group 'elmacro
@@ -117,9 +124,14 @@
     (-drop 1 (--take-while (not (-contains? starters (car it)))
                            (--drop-while (not (-contains? finishers (car it))) commands)))))
 
+(defun elmacro-get-frame-object (name)
+  "Return the frame object named NAME."
+  (--first (s-match (format "#<frame .* %s>" name) (prin1-to-string it))
+           (frame-list)))
+
 (defun elmacro-get-window-object (number)
   "Return the window object numbered NUMBER."
-  (--first (s-match (format "#<window %s[^>]+>" number) (prin1-to-string it))
+  (--first (s-match (format "#<window %d[^>]+>" number) (prin1-to-string it))
            (window-list)))
 
 (defun elmacro-object-to-string (obj)
@@ -127,9 +139,19 @@
   (let* ((print-quoted t)
          (str (prin1-to-string obj)))
 
+    ;; Handle #<frame> objects
+    (when (and (-contains? elmacro-objects-to-convert 'frame) (s-contains? "#<frame" str))
+      (setq str (replace-regexp-in-string "#<frame [^0]+\\(0x[0-9a-f]+\\)>" ",(elmacro-get-frame-object \"\\1\")" str))
+      (setq str (replace-regexp-in-string "'(" "`(" str)))
+
     ;; Handle #<window> objects
-    (when (s-contains? "#<window" str)
+    (when (and (-contains? elmacro-objects-to-convert 'window) (s-contains? "#<window" str))
       (setq str (replace-regexp-in-string "#<window \\([0-9]+\\)[^>]+>" ",(elmacro-get-window-object \\1)" str))
+      (setq str (replace-regexp-in-string "'(" "`(" str)))
+
+    ;; Handle #<buffer> objects
+    (when (and (-contains? elmacro-objects-to-convert 'buffer) (s-contains? "#<buffer" str))
+      (setq str (replace-regexp-in-string "#<buffer \\([^>]+\\)>" ",(get-buffer \"\\1\")" str))
       (setq str (replace-regexp-in-string "'(" "`(" str)))
 
     ;; Prettify last-command-event
