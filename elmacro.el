@@ -213,8 +213,10 @@ See the variable `elmacro-additional-recorded-functions'."
 (defun elmacro-show-last-commands (&optional count)
   "Take the latest COUNT commands and show them as elisp.
 
-The default number of commands shown is 300.
-See also `kmacro-edit-lossage'."
+The default number of commands shown is 300. You can change this
+number by using a numeric prefix argument or by using the
+universal argument, in which case it'll ask for how many in the
+minibuffer. See also `kmacro-edit-lossage'."
   (interactive
    (list
     (cond
