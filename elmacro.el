@@ -42,12 +42,11 @@
   :group 'elmacro
   :type '(repeat symbol))
 
-(defcustom elmacro-custom-recorded-functions
-  '(copy-file
-    copy-directory
-    rename-file
-    delete-file
-    make-directory)
+(defcustom elmacro-custom-recorded-functions '(copy-file
+                                               copy-directory
+                                               rename-file
+                                               delete-file
+                                               make-directory)
   "List of additional custom functions to record."
   :group 'elmacro
   :type '(repeat symbol))
@@ -175,6 +174,9 @@ For example, converts <#window 42> to (elmacro-get-window-object 42)."
     (goto-char (point-min))))
 
 (defun elmacro-make-advice-lambda (function)
+  "Generate the `defadvice' lambda used to record FUNCTION.
+
+See the variable `elmacro-custom-recorded-functions'."
   `(lambda ()
      (!cons ,(list '\` (list function ',@(ad-get-args 0))) elmacro-recorded-commands)))
 
