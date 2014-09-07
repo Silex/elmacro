@@ -52,7 +52,7 @@ You can now do `M-x upcase-last-word` or call it from your elisp code :)
 
 ## Options
 
-* `elmacro-custom-recorded-functions`
+* `elmacro-additional-recorded-functions`
 
    This is a list of non-interactive functions that you also want to
    be recorded.
@@ -60,7 +60,7 @@ You can now do `M-x upcase-last-word` or call it from your elisp code :)
    For example, `dired-copy-file` (`C` key in dired)
    doesn't reads its arguments as an interactive specification, and
    thus the file name is never stored. Adding `copy-file` to
-   `elmacro-custom-recorded-functions` solves this.
+   `elmacro-additional-recorded-functions` solves this.
 
 * `elmacro-concatenate-multiple-inserts` (default value: `t`)
 

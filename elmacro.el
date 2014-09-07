@@ -42,12 +42,12 @@
   :group 'elmacro
   :type '(repeat symbol))
 
-(defcustom elmacro-custom-recorded-functions '(copy-file
-                                               copy-directory
-                                               rename-file
-                                               delete-file
-                                               make-directory)
-  "List of additional custom functions to record."
+(defcustom elmacro-additional-recorded-functions '(copy-file
+                                                   copy-directory
+                                                   rename-file
+                                                   delete-file
+                                                   make-directory)
+  "List of additional functions to record."
   :group 'elmacro
   :type '(repeat symbol))
 
@@ -176,7 +176,7 @@ For example, converts <#window 42> to (elmacro-get-window-object 42)."
 (defun elmacro-make-advice-lambda (function)
   "Generate the `defadvice' lambda used to record FUNCTION.
 
-See the variable `elmacro-custom-recorded-functions'."
+See the variable `elmacro-additional-recorded-functions'."
   `(lambda ()
      (!cons ,(list '\` (list function ',@(ad-get-args 0))) elmacro-recorded-commands)))
 
@@ -185,7 +185,7 @@ See the variable `elmacro-custom-recorded-functions'."
   (defadvice call-interactively (before elmacro-save-all-commands (func &optional record keys) activate)
     "Always save whatever is called interactively in the variable `command-history'."
     (setq record t))
-  (--each elmacro-custom-recorded-functions
+  (--each elmacro-additional-recorded-functions
     (ad-add-advice it
                    `(elmacro-record-command nil t (advice . ,(elmacro-make-advice-lambda it)))
                    'before
@@ -196,7 +196,7 @@ See the variable `elmacro-custom-recorded-functions'."
 (defun elmacro-mode-off ()
   "Turn elmacro mode off."
   (ad-remove-advice 'call-interactively 'before 'elmacro-save-all-commands)
-  (--each elmacro-custom-recorded-functions
+  (--each elmacro-additional-recorded-functions
     (ad-remove-advice it 'before 'elmacro-record-command))
   (remove-hook 'post-command-hook 'elmacro-process-latest-command))
 
