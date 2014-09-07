@@ -16,7 +16,7 @@ To enable elmacro, do `M-x elmacro-mode` or enable it from your config file like
 (elmacro-mode 1)
 ```
 
-From now on, at any point you can use `M-x elmacro-show-lossage` to see your latest
+From now on, at any point you can use `M-x elmacro-show-last-commands` to see your latest
 emacs activity as emacs lisp. This is more or less a better version of `kmacro-edit-lossage`.
 
 You can also record a [keyboard macro](https://www.gnu.org/software/emacs/manual/html_node/emacs/Keyboard-Macros.html)

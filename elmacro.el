@@ -208,10 +208,25 @@ For example, converts <#window 42> to (elmacro-get-window-object 42)."
       (message "You have to record a macro before using this command (F3/f4)."))))
 
 ;;;###autoload
-(defun elmacro-show-lossage ()
-  "Show lossage as elisp."
-  (interactive)
-  (elmacro-show-defun "lossage" (reverse (-take 300 elmacro-recorded-commands))))
+(defun elmacro-show-last-commands (&optional count)
+  "Take the latest COUNT commands and show them as elisp.
+
+The default number of commands shown is 300.
+See also `kmacro-edit-lossage'."
+  (interactive
+   (list
+    (cond
+     ((equal current-prefix-arg nil)
+      300)
+     ((equal current-prefix-arg '(4))
+      (read-number "How many commands?" 300))
+     (t
+      (prefix-numeric-value current-prefix-arg)))))
+  (elmacro-show-defun "lossage" (reverse (-take count elmacro-recorded-commands))))
+
+;;;###autoload
+(defalias 'elmacro-show-lossage 'elmacro-show-last-commands)
+(make-obsolete 'elmacro-show-lossage 'elmacro-show-last-commands)
 
 ;;;###autoload
 (define-minor-mode elmacro-mode
