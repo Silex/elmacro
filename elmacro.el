@@ -207,7 +207,7 @@ See the variable `elmacro-additional-recorded-functions'."
   (let ((macro-commands (reverse (elmacro-extract-last-kbd-macro elmacro-recorded-commands))))
     (if macro-commands
         (elmacro-show-defun name macro-commands)
-      (message "You have to record a macro before using this command (F3/f4)."))))
+      (message "You have to record a macro before using this command (F3/F4)."))))
 
 ;;;###autoload
 (defun elmacro-show-last-commands (&optional count)
