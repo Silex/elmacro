@@ -226,7 +226,7 @@ minibuffer. See also `kmacro-edit-lossage'."
       (read-number "How many commands?" 300))
      (t
       (prefix-numeric-value current-prefix-arg)))))
-  (elmacro-show-defun "lossage" (reverse (-take count elmacro-recorded-commands))))
+  (elmacro-show-defun "last-commands" (reverse (-take count elmacro-recorded-commands))))
 
 ;;;###autoload
 (defalias 'elmacro-show-lossage 'elmacro-show-last-commands)
