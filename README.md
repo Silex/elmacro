@@ -10,17 +10,17 @@ Otherwise, simply add `elmacro.el` to your load-path and then `(require 'elmacro
 
 ## Usage
 
-To enable elmacro, do `M-x elmacro-mode` or enable it from your config file like this:
+To enable elmacro, do <kbd>M-x elmacro-mode</kbd> or enable it from your config file like this:
 
 ``` emacs-lisp
 (elmacro-mode 1)
 ```
 
-From now on, at any point you can use `M-x elmacro-show-last-commands` to see your latest
+From now on, at any point you can use <kbd>M-x elmacro-show-last-commands</kbd> to see your latest
 emacs activity as emacs lisp. This is more or less a better version of `kmacro-edit-lossage`.
 
 You can also record a [keyboard macro](https://www.gnu.org/software/emacs/manual/html_node/emacs/Keyboard-Macros.html)
-and use `M-x elmacro-show-last-macro` to see it as emacs lisp.
+and use <kbd>M-x elmacro-show-last-macro</kbd> to see it as emacs lisp.
 
 ## Examples
 
