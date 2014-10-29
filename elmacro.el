@@ -99,7 +99,7 @@ For example, converts <#window 42> to (elmacro-get-window-object 42)."
       (list form)))))
 
 (defun elmacro-last-command-event ()
-  "Return an expression setting up `last-command-event'."
+  "Return a form setting up `last-command-event'."
   (if (symbolp last-command-event)
       `(setq last-command-event ',last-command-event)
     `(setq last-command-event ,last-command-event)))
@@ -218,7 +218,10 @@ minibuffer. See also `kmacro-edit-lossage'."
 
 ;;;###autoload
 (define-minor-mode elmacro-mode
-  "Toggle elmacro mode."
+  "Toggle emacs activity recording (elmacro mode).
+With a prefix argument ARG, enable elmacro mode if ARG is
+positive, and disable it otherwise. If called from Lisp, enable
+the mode if ARG is omitted or nil."
   nil
   " elmacro"
   nil
