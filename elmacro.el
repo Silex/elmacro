@@ -65,26 +65,30 @@ For example, converts <#window 42> to (elmacro-get-window-object 42)."
 
 (defun elmacro-process-latest-command ()
   "Process the latest command of variable `command-history' into `elmacro-recorded-commands'."
-  (--each (elmacro-transform-command (car command-history))
+  (--each (elmacro-preprocess-command (car command-history))
     (!cons it elmacro-recorded-commands)))
 
-(defun elmacro-transform-command (cmd)
-  "Transform CMD into a list of one or more modified commands if needed."
-  (let* ((func (car cmd)))
+(defun elmacro-preprocess-self-insert-command ()
+  "Transorm `self-insert-command' into the appropriate form."
+  (unless (minibufferp)
+    (let ((previous-command (car elmacro-recorded-commands))
+          (character (string last-command-event)))
+      ;; TODO maybe do this as post-processing instead, that way we
+      ;; can also detect backspaces and delete accordingly
+      (if (or (not elmacro-concatenate-multiple-inserts)
+              (not (equal 'insert (car previous-command))))
+          `((insert ,character))
+        (setcdr previous-command (list (concat (cadr previous-command) character)))
+        nil))))
+
+(defun elmacro-preprocess-command (form)
+  "Transform FORM into a list of one or more modified forms if needed."
+  (let* ((command-symbol (car form))
+         (command-string (symbol-name command-symbol)))
     (cond
-     ;; Transform self-insert-command (if not in minibuffer)
-     ((equal func 'self-insert-command)
-      (unless (minibufferp)
-        (let ((previous-command (car elmacro-recorded-commands))
-              (character (string last-command-event)))
-          ;; TODO maybe do this as post-processing instead, that way we
-          ;; can also detect backspaces and delete accordingly
-          (if (or (not elmacro-concatenate-multiple-inserts)
-                  (not (equal 'insert (car previous-command))))
-              `((insert ,character))
-            (setcdr previous-command
-                    (list (concat (cadr previous-command) character)))
-            nil))))
+     ;; Transform self-insert-command
+     ((equal command-symbol 'self-insert-command)
+      (elmacro-preprocess-self-insert-command))
 
      ;; Filter unwanted commands
      ((s-matches? elmacro-unwanted-commands-regexp command-string)
@@ -92,7 +96,7 @@ For example, converts <#window 42> to (elmacro-get-window-object 42)."
 
      ;; Default
      (t
-      (list cmd)))))
+      (list form)))))
 
 (defun elmacro-last-command-event ()
   "Return an expression setting up `last-command-event'."
