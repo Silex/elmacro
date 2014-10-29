@@ -90,18 +90,6 @@ For example, converts <#window 42> to (elmacro-get-window-object 42)."
      ((s-matches? elmacro-unwanted-commands-regexp command-string)
       nil)
 
-     ;; Filter isearch
-     ((and (s-starts-with? "isearch" (symbol-name func)) (-contains? elmacro-filters 'isearch))
-      (cl-case func
-        ;; isearch-printing-char needs last-command-event
-        (isearch-printing-char
-         (list (elmacro-last-command-event) cmd))
-        ;; isearch-other-control-char should be ignored, it only triggers other isearch commands
-        (isearch-other-control-char
-         '())
-        (otherwise
-         (list cmd))))
-
      ;; Default
      (t
       (list cmd)))))
