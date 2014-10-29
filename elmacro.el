@@ -37,10 +37,10 @@
 (defvar elmacro-recorded-commands '()
   "Where elmacro process commands from variable `command-history'.")
 
-(defcustom elmacro-filters '(ido smex isearch)
-  "List of symbols representing packages to filter."
+(defcustom elmacro-unwanted-commands-regexp "^\\(ido\\|smex\\)"
+  "Regexp used to filter unwanted commands."
   :group 'elmacro
-  :type '(repeat symbol))
+  :type 'regexp)
 
 (defcustom elmacro-additional-recorded-functions '(copy-file
                                                    copy-directory
@@ -86,13 +86,9 @@ For example, converts <#window 42> to (elmacro-get-window-object 42)."
                     (list (concat (cadr previous-command) character)))
             nil))))
 
-     ;; Filter ido
-     ((and (s-starts-with? "ido" (symbol-name func)) (-contains? elmacro-filters 'ido))
-      '())
-
-     ;; Filter smex
-     ((and (s-starts-with? "smex" (symbol-name func)) (-contains? elmacro-filters 'smex))
-      '())
+     ;; Filter unwanted commands
+     ((s-matches? elmacro-unwanted-commands-regexp command-string)
+      nil)
 
      ;; Filter isearch
      ((and (s-starts-with? "isearch" (symbol-name func)) (-contains? elmacro-filters 'isearch))
