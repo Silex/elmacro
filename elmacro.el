@@ -229,10 +229,6 @@ minibuffer. See also `kmacro-edit-lossage'."
   (elmacro-show-defun "last-commands" (reverse (-take count elmacro-recorded-commands))))
 
 ;;;###autoload
-(defalias 'elmacro-show-lossage 'elmacro-show-last-commands)
-(make-obsolete 'elmacro-show-lossage 'elmacro-show-last-commands "0.2.0")
-
-;;;###autoload
 (define-minor-mode elmacro-mode
   "Toggle elmacro mode."
   nil
