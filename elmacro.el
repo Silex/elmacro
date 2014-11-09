@@ -161,12 +161,21 @@ For example, converts <#window 42> to (elmacro-get-window-object 42)."
     (pop-to-buffer buffer)
     (goto-char (point-min))))
 
+(defun elmacro-quoted-arguments (args)
+  "Helper to correctly quote functions arguments of `elmacro-additional-recorded-functions'."
+  (--map-when (and (symbolp it)
+                   (not (keywordp it))
+                   (not (eq nil it))
+                   (not (eq t it)))
+              `(quote ,it) args))
+
 (defun elmacro-make-advice-lambda (function)
   "Generate the `defadvice' lambda used to record FUNCTION.
 
 See the variable `elmacro-additional-recorded-functions'."
   `(lambda ()
-     (!cons ,(list '\` (list function ',@(ad-get-args 0))) elmacro-recorded-commands)))
+     (!cons ,(list '\` (list function ',@(elmacro-quoted-arguments (ad-get-args 0))))
+            elmacro-recorded-commands)))
 
 (defun elmacro-mode-on ()
   "Turn elmacro mode on."
