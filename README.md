@@ -35,6 +35,10 @@ and use <kbd>M-x elmacro-show-last-macro</kbd> to see it as emacs lisp.
 
 It'll ask you which `defun` name you want to give to this macro.
 
+### elmacro-clear-recorded-commands
+
+Clears all the recorded commands.
+
 ## Examples
 
 ### upcase-last-word

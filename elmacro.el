@@ -226,6 +226,12 @@ minibuffer. See also `kmacro-edit-lossage'."
   (elmacro-show-defun "last-commands" (reverse (-take count elmacro-recorded-commands))))
 
 ;;;###autoload
+(defun elmacro-clear-recorded-commands ()
+  "Clear the list of recorded commands."
+  (interactive)
+  (setq elmacro-recorded-commands '()))
+
+;;;###autoload
 (define-minor-mode elmacro-mode
   "Toggle emacs activity recording (elmacro mode).
 With a prefix argument ARG, enable elmacro mode if ARG is
