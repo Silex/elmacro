@@ -196,10 +196,16 @@ See the variable `elmacro-additional-recorded-functions'."
     (ad-remove-advice it 'before 'elmacro-record-command))
   (remove-hook 'post-command-hook 'elmacro-process-latest-command))
 
+(defun elmacro-assert-enabled ()
+  "Ensure `elmacro-mode' is turned on."
+  (unless elmacro-mode
+    (error "elmacro-mode is turned off")))
+
 ;;;###autoload
 (defun elmacro-show-last-macro (name)
   "Show the last macro as elisp with NAME."
   (interactive "sMacro name: ")
+  (elmacro-assert-enabled)
   (let ((macro-commands (reverse (elmacro-extract-last-kbd-macro elmacro-recorded-commands))))
     (if macro-commands
         (elmacro-show-defun name macro-commands)
@@ -222,6 +228,7 @@ minibuffer. See also `kmacro-edit-lossage'."
       (read-number "How many commands?" 300))
      (t
       (prefix-numeric-value current-prefix-arg)))))
+  (elmacro-assert-enabled)
   (elmacro-show-defun "last-commands" (reverse (-take count elmacro-recorded-commands))))
 
 ;;;###autoload
