@@ -4,7 +4,7 @@
 ;; URL: https://github.com/Silex/elmacro
 ;; Keywords: macro, elisp, convenience
 ;; Version: 0.3.0
-;; Package-Requires: ((s "1.9.0") (dash "1.5.0"))
+;; Package-Requires: ((s "1.11.0") (dash "2.13.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
