@@ -33,13 +33,22 @@
   :group 'keyboard
   :group 'convenience)
 
-(defvar elmacro-recorded-commands '()
+(defvar elmacro-command-history '()
   "Where elmacro process commands from variable `command-history'.")
 
-(defcustom elmacro-unwanted-commands-regexp "^\\(ido\\|smex\\)"
-  "Regexp used to filter unwanted commands."
+(defcustom elmacro-unwanted-commands-regexps '("^(ido.*)$" "^(smex)$")
+  "Regexps used to filter unwanted commands."
   :group 'elmacro
-  :type 'regexp)
+  :type '(repeat regexp))
+
+(defcustom elmacro-processors '(elmacro-processor-filter-unwanted
+                                elmacro-processor-prettify-inserts)
+  "List of processors functions used to improve code listing.
+
+Each function is passed the list of commands meant to be displayed and
+is expected to return a modified list of commands."
+  :group 'elmacro
+  :type '(repeat symbol))
 
 (defcustom elmacro-additional-recorded-functions '(copy-file
                                                    copy-directory
@@ -50,65 +59,37 @@
   :group 'elmacro
   :type '(repeat symbol))
 
-(defcustom elmacro-objects-to-convert '(frame window buffer)
-  "List of symbols representing which object to convert.
+(defun elmacro-processor-filter-unwanted (commands)
+  "Remove unwanted commands using `elmacro-unwanted-commands-regexps'"
+  (--remove (let ((str (prin1-to-string it)))
+              (--any? (s-matches? it str) elmacro-unwanted-commands-regexps))
+            commands))
 
-For example, converts <#window 42> to (elmacro-get-window-object 42)."
-  :group 'elmacro
-  :type '(repeat symbol))
+(defun elmacro-processor-prettify-inserts (commands)
+  "Transform all occurences of `self-insert-command' into `insert'."
+  (let (result)
+    (--each commands
+      (-let (((previous-command previous-arg1 previous-arg2) (car result))
+             ((current-command current-arg) it))
+        (if (and (eq 'setq previous-command)
+                 (eq 'last-command-event previous-arg1)
+                 (eq 'self-insert-command current-command))
+            (setcar result `(insert ,(make-string current-arg previous-arg2)))
+          (!cons it result))))
+    (reverse result)))
 
-(defcustom elmacro-concatenate-multiple-inserts t
-  "Wether to concatenate multiple `insert' or not."
-  :group 'elmacro
-  :type 'boolean)
-
-(defun elmacro-process-latest-command ()
-  "Process the latest command of variable `command-history' into `elmacro-recorded-commands'."
-  (--each (elmacro-preprocess-command (car command-history))
-    (!cons it elmacro-recorded-commands)))
-
-(defun elmacro-preprocess-self-insert-command ()
-  "Transorm `self-insert-command' into the appropriate form."
-  (unless (minibufferp)
-    (let ((previous-command (car elmacro-recorded-commands))
-          (character (string last-command-event)))
-      ;; TODO maybe do this as post-processing instead, that way we
-      ;; can also detect backspaces and delete accordingly
-      (if (or (not elmacro-concatenate-multiple-inserts)
-              (not (equal 'insert (car previous-command))))
-          `((insert ,character))
-        (setcdr previous-command (list (concat (cadr previous-command) character)))
-        nil))))
-
-(defun elmacro-preprocess-command (form)
-  "Transform FORM into a list of one or more modified forms if needed."
-  (let* ((command-symbol (car form))
-         (command-string (symbol-name command-symbol)))
-    (cond
-     ;; Transform self-insert-command
-     ((equal command-symbol 'self-insert-command)
-      (elmacro-preprocess-self-insert-command))
-
-     ;; Filter unwanted commands
-     ((s-matches? elmacro-unwanted-commands-regexp command-string)
-      nil)
-
-     ;; Default
-     (t
-      (list form)))))
-
-(defun elmacro-last-command-event ()
-  "Return a form setting up `last-command-event'."
+(defun elmacro-setq-last-command-event ()
+  "Return a sexp setting up `last-command-event'."
   (if (symbolp last-command-event)
       `(setq last-command-event ',last-command-event)
     `(setq last-command-event ,last-command-event)))
 
-(defun elmacro-extract-last-kbd-macro (commands)
-  "Extract the last keyboard macro from COMMANDS."
+(defun elmacro-extract-last-macro (history)
+  "Extract the last keyboard macro from HISTORY."
   (let ((starters '(start-kbd-macro kmacro-start-macro kmacro-start-macro-or-insert-counter))
         (finishers '(end-kbd-macro kmacro-end-macro kmacro-end-or-call-macro kmacro-end-and-call-macro)))
-    (-drop 1 (--take-while (not (-contains? starters (car it)))
-                           (--drop-while (not (-contains? finishers (car it))) commands)))))
+    (elmacro-process-commands (-drop 1 (--take-while (not (-contains? starters (car it)))
+                                                     (--drop-while (not (-contains? finishers (car it))) history))))))
 
 (defun elmacro-get-frame-object (name)
   "Return the frame object named NAME."
@@ -120,40 +101,48 @@ For example, converts <#window 42> to (elmacro-get-window-object 42)."
   (--first (s-match (format "#<window %d[^>]+>" number) (prin1-to-string it))
            (window-list)))
 
-(defun elmacro-object-to-string (obj)
-  "Print OBJ like `prin1-to-string' but handle windows, buffers, etc."
+(defun elmacro-prin1-to-string (object)
+  "Print OBJECT like `prin1-to-string' but handle windows, buffers, etc."
   (let* ((print-quoted t)
-         (str (prin1-to-string obj)))
+         (str (prin1-to-string object)))
 
     ;; Handle #<frame> objects
-    (when (and (-contains? elmacro-objects-to-convert 'frame) (s-contains? "#<frame" str))
+    (when (s-contains? "#<frame" str)
       (setq str (replace-regexp-in-string "#<frame [^0]+\\(0x[0-9a-f]+\\)>" ",(elmacro-get-frame-object \"\\1\")" str))
       (setq str (replace-regexp-in-string "'(" "`(" str)))
 
     ;; Handle #<window> objects
-    (when (and (-contains? elmacro-objects-to-convert 'window) (s-contains? "#<window" str))
+    (when (s-contains? "#<window" str)
       (setq str (replace-regexp-in-string "#<window \\([0-9]+\\)[^>]+>" ",(elmacro-get-window-object \\1)" str))
       (setq str (replace-regexp-in-string "'(" "`(" str)))
 
     ;; Handle #<buffer> objects
-    (when (and (-contains? elmacro-objects-to-convert 'buffer) (s-contains? "#<buffer" str))
+    (when (s-contains? "#<buffer" str)
       (setq str (replace-regexp-in-string "#<buffer \\([^>]+\\)>" ",(get-buffer \"\\1\")" str))
       (setq str (replace-regexp-in-string "'(" "`(" str)))
 
-    ;; Prettify last-command-event
-    (if (string-match "(setq last-command-event \\([0-9]+\\))" str)
-        (replace-match (format "?%s" (string (string-to-number (match-string 1 str)))) t t str 1)
-      str)))
+    str))
 
-(defun elmacro-show-defun (name commands)
-  "Create a buffer NAME containing a defun from COMMANDS."
-  (let ((buffer (get-buffer-create (format "* elmacro - %s.el *" name))))
+(defun elmacro-process-commands (history)
+  "Apply `elmacro-processors' to HISTORY."
+  (let ((commands (reverse history)))
+    (--each elmacro-processors
+      (setq commands (funcall it commands)))
+    commands))
+
+(defun elmacro-show-defun (commands)
+  "Create a buffer containing a defun from COMMANDS."
+  (let* ((count (--count (s-starts-with? "* elmacro" (buffer-name it)) (buffer-list)))
+         (name (format "macro%d" count))
+         (buffer (get-buffer-create (format "* elmacro - %s *" name)))
+         (print-quoted t)
+         (print-length nil)
+         (print-level nil))
     (set-buffer buffer)
     (erase-buffer)
     (insert (format "(defun %s ()\n" name))
-    (insert "\"Change me!\"\n")
     (insert "(interactive)\n")
-    (insert (mapconcat 'elmacro-object-to-string commands "\n"))
+    (insert (mapconcat 'elmacro-prin1-to-string commands "\n"))
     (insert ")\n")
     (emacs-lisp-mode)
     (indent-region (point-min) (point-max))
@@ -172,29 +161,52 @@ For example, converts <#window 42> to (elmacro-get-window-object 42)."
   "Generate the `defadvice' lambda used to record FUNCTION.
 
 See the variable `elmacro-additional-recorded-functions'."
-  `(lambda ()
-     (!cons ,(list '\` (list function ',@(elmacro-quoted-arguments (ad-get-args 0))))
-            elmacro-recorded-commands)))
+  `(lambda (&rest args)
+     (!cons ,(list '\` (list function ',@(elmacro-quoted-arguments args)))
+            elmacro-command-history)))
+
+(defvar elmacro-debug nil
+  "Set to true to turn debugging in buffer \"* elmacro debug *\".")
+
+(defun elmacro-debug-message (s &rest args)
+  (when elmacro-debug
+    (with-current-buffer (get-buffer-create "* elmacro - debug *")
+      (insert (apply #'format s args) "\n"))))
+
+(defun elmacro-record-command (advised-function function &optional record keys)
+  "Advice for `call-interactively' which makes it temporarily record
+commands in variable `command-history'."
+  (let ((original-record record)
+        retval)
+    (elmacro-debug-message "[%s] ----- START -----" function)
+    (setq record (or original-record (not (minibufferp)))) ;; don't record when in minibuffer
+    (elmacro-debug-message "[%s] before - history %s record %s original %s"
+                           function (car command-history) record original-record)
+    (setq retval (funcall advised-function function record keys))
+    (elmacro-debug-message "[%s] after - history %s" function (car command-history))
+    (let* ((sexp (car command-history))
+           (cmd (car sexp)))
+      (when record
+        (elmacro-debug-message "[%s] recording %s" function cmd)
+        (when (eq cmd 'self-insert-command)
+          (!cons (elmacro-setq-last-command-event) elmacro-command-history))
+        (!cons sexp elmacro-command-history)
+        (!cdr command-history)
+        (elmacro-debug-message "[%s] clean %s" function (car command-history)))
+      (elmacro-debug-message "[%s] ----- STOP -----" function)
+      retval)))
 
 (defun elmacro-mode-on ()
   "Turn elmacro mode on."
-  (defadvice call-interactively (before elmacro-save-all-commands (func &optional record keys) activate)
-    "Always save whatever is called interactively in the variable `command-history'."
-    (setq record t))
   (--each elmacro-additional-recorded-functions
-    (ad-add-advice it
-                   `(elmacro-record-command nil t (advice . ,(elmacro-make-advice-lambda it)))
-                   'before
-                   0)
-    (ad-activate it))
-  (add-hook 'post-command-hook 'elmacro-process-latest-command))
+    (advice-add it :before (elmacro-make-advice-lambda it)))
+  (advice-add 'call-interactively :around #'elmacro-record-command))
 
 (defun elmacro-mode-off ()
   "Turn elmacro mode off."
-  (ad-remove-advice 'call-interactively 'before 'elmacro-save-all-commands)
   (--each elmacro-additional-recorded-functions
-    (ad-remove-advice it 'before 'elmacro-record-command))
-  (remove-hook 'post-command-hook 'elmacro-process-latest-command))
+    (advice-remove it (elmacro-make-advice-lambda it)))
+  (advice-remove 'call-interactively #'elmacro-record-command))
 
 (defun elmacro-assert-enabled ()
   "Ensure `elmacro-mode' is turned on."
@@ -202,14 +214,13 @@ See the variable `elmacro-additional-recorded-functions'."
     (error "elmacro is turned off")))
 
 ;;;###autoload
-(defun elmacro-show-last-macro (name)
-  "Show the last macro as elisp with NAME."
-  (interactive "sMacro name: ")
+(defun elmacro-show-last-macro ()
+  "Show the last macro as elisp."
+  (interactive)
   (elmacro-assert-enabled)
-  (let ((macro-commands (reverse (elmacro-extract-last-kbd-macro elmacro-recorded-commands))))
-    (if macro-commands
-        (elmacro-show-defun name macro-commands)
-      (message "You have to record a macro before using this command (F3/F4)."))))
+  (-if-let (commands (elmacro-extract-last-macro elmacro-command-history))
+      (elmacro-show-defun commands)
+    (message "No macros found. Please record one before using this command (F3/F4).")))
 
 ;;;###autoload
 (defun elmacro-show-last-commands (&optional count)
@@ -229,13 +240,13 @@ minibuffer. See also `kmacro-edit-lossage'."
      (t
       (prefix-numeric-value current-prefix-arg)))))
   (elmacro-assert-enabled)
-  (elmacro-show-defun "last-commands" (reverse (-take count elmacro-recorded-commands))))
+  (elmacro-show-defun (-take-last count (elmacro-process-commands elmacro-command-history))))
 
 ;;;###autoload
-(defun elmacro-clear-recorded-commands ()
+(defun elmacro-clear-command-history ()
   "Clear the list of recorded commands."
   (interactive)
-  (setq elmacro-recorded-commands '()))
+  (setq elmacro-command-history '()))
 
 ;;;###autoload
 (define-minor-mode elmacro-mode
