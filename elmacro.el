@@ -199,7 +199,7 @@ See the variable `elmacro-additional-recorded-functions'."
 (defun elmacro-assert-enabled ()
   "Ensure `elmacro-mode' is turned on."
   (unless elmacro-mode
-    (error "elmacro-mode is turned off")))
+    (error "elmacro is turned off")))
 
 ;;;###autoload
 (defun elmacro-show-last-macro (name)
