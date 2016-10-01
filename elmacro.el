@@ -42,7 +42,8 @@
   :type '(repeat regexp))
 
 (defcustom elmacro-processors '(elmacro-processor-filter-unwanted
-                                elmacro-processor-prettify-inserts)
+                                elmacro-processor-prettify-inserts
+                                elmacro-processor-concatenate-inserts)
   "List of processors functions used to improve code listing.
 
 Each function is passed the list of commands meant to be displayed and
@@ -75,6 +76,17 @@ is expected to return a modified list of commands."
                  (eq 'last-command-event previous-arg1)
                  (eq 'self-insert-command current-command))
             (setcar result `(insert ,(make-string current-arg previous-arg2)))
+          (!cons it result))))
+    (reverse result)))
+
+(defun elmacro-processor-concatenate-inserts (commands)
+  "Concatenate multiple inserts together"
+  (let (result)
+    (--each commands
+      (-let (((previous-command previous-args) (car result))
+             ((current-command current-args) it))
+        (if (and (eq 'insert current-command) (eq 'insert previous-command))
+            (setcar result `(insert ,(concat previous-args current-args)))
           (!cons it result))))
     (reverse result)))
 
