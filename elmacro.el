@@ -43,7 +43,8 @@
 
 (defcustom elmacro-processors '(elmacro-processor-filter-unwanted
                                 elmacro-processor-prettify-inserts
-                                elmacro-processor-concatenate-inserts)
+                                elmacro-processor-concatenate-inserts
+                                elmacro-processor-handle-special-objects)
   "List of processors functions used to improve code listing.
 
 Each function is passed the list of commands meant to be displayed and
@@ -59,6 +60,15 @@ is expected to return a modified list of commands."
   "List of additional functions to record."
   :group 'elmacro
   :type '(repeat symbol))
+
+(defcustom elmacro-special-objects '(("#<frame [^0]+\\(0x[0-9a-f]+\\)>" ",(elmacro-get-frame \"\\1\")")
+                                     ("#<window \\([0-9]+\\)[^>]+>"     ",(elmacro-get-window \\1)")
+                                     ("#<buffer \\([^>]+\\)>"           ",(get-buffer \"\\1\")"))
+  "List of (regexp replacement) for special objects.
+
+This will be used as arguments for `replace-regexp-in-string'."
+  :group 'elmacro
+  :type '(repeat (list regexp string)))
 
 (defun elmacro-processor-filter-unwanted (commands)
   "Remove unwanted commands using `elmacro-unwanted-commands-regexps'"
@@ -90,6 +100,14 @@ is expected to return a modified list of commands."
           (!cons it result))))
     (reverse result)))
 
+(defun elmacro-processor-handle-special-objects (commands)
+  "Turn special objects into usable objects."
+  (--map (let ((str (prin1-to-string it)))
+           (--each elmacro-special-objects
+             (setq str (eval `(replace-regexp-in-string ,@it str))))
+           (car (read-from-string (s-replace "'(" "`(" str))))
+         commands))
+
 (defun elmacro-setq-last-command-event ()
   "Return a sexp setting up `last-command-event'."
   (if (symbolp last-command-event)
@@ -103,37 +121,15 @@ is expected to return a modified list of commands."
     (elmacro-process-commands (-drop 1 (--take-while (not (-contains? starters (car it)))
                                                      (--drop-while (not (-contains? finishers (car it))) history))))))
 
-(defun elmacro-get-frame-object (name)
-  "Return the frame object named NAME."
-  (--first (s-match (format "#<frame .* %s>" name) (prin1-to-string it))
+(defun elmacro-get-frame (name)
+  "Return the frame named NAME."
+  (--first (s-matches? (format "^#<frame .* %s>$" name) (prin1-to-string it))
            (frame-list)))
 
-(defun elmacro-get-window-object (number)
-  "Return the window object numbered NUMBER."
-  (--first (s-match (format "#<window %d[^>]+>" number) (prin1-to-string it))
+(defun elmacro-get-window (n)
+  "Return the window numbered N."
+  (--first (s-matches? (format "^#<window %d " n) (prin1-to-string it))
            (window-list)))
-
-(defun elmacro-prin1-to-string (object)
-  "Print OBJECT like `prin1-to-string' but handle windows, buffers, etc."
-  (let* ((print-quoted t)
-         (str (prin1-to-string object)))
-
-    ;; Handle #<frame> objects
-    (when (s-contains? "#<frame" str)
-      (setq str (replace-regexp-in-string "#<frame [^0]+\\(0x[0-9a-f]+\\)>" ",(elmacro-get-frame-object \"\\1\")" str))
-      (setq str (replace-regexp-in-string "'(" "`(" str)))
-
-    ;; Handle #<window> objects
-    (when (s-contains? "#<window" str)
-      (setq str (replace-regexp-in-string "#<window \\([0-9]+\\)[^>]+>" ",(elmacro-get-window-object \\1)" str))
-      (setq str (replace-regexp-in-string "'(" "`(" str)))
-
-    ;; Handle #<buffer> objects
-    (when (s-contains? "#<buffer" str)
-      (setq str (replace-regexp-in-string "#<buffer \\([^>]+\\)>" ",(get-buffer \"\\1\")" str))
-      (setq str (replace-regexp-in-string "'(" "`(" str)))
-
-    str))
 
 (defun elmacro-process-commands (history)
   "Apply `elmacro-processors' to HISTORY."
@@ -154,7 +150,7 @@ is expected to return a modified list of commands."
     (erase-buffer)
     (insert (format "(defun %s ()\n" name))
     (insert "(interactive)\n")
-    (insert (mapconcat 'elmacro-prin1-to-string commands "\n"))
+    (insert (mapconcat 'prin1-to-string commands "\n"))
     (insert ")\n")
     (emacs-lisp-mode)
     (indent-region (point-min) (point-max))
