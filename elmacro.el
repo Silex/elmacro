@@ -36,16 +36,6 @@
 (defvar elmacro-command-history '()
   "Where elmacro process commands from variable `command-history'.")
 
-(defcustom elmacro-show-last-commands-default 30
-  "Number of commands shown by default in `elmacro-show-last-commands'."
-  :group 'elmacro
-  :type 'integer)
-
-(defcustom elmacro-unwanted-commands-regexps '("^(ido.*)$" "^(smex)$")
-  "Regexps used to filter unwanted commands."
-  :group 'elmacro
-  :type '(repeat regexp))
-
 (defcustom elmacro-processors '(elmacro-processor-filter-unwanted
                                 elmacro-processor-prettify-inserts
                                 elmacro-processor-concatenate-inserts
@@ -57,6 +47,11 @@ is expected to return a modified list of commands."
   :group 'elmacro
   :type '(repeat symbol))
 
+(defcustom elmacro-show-last-commands-default 30
+  "Number of commands shown by default in `elmacro-show-last-commands'."
+  :group 'elmacro
+  :type 'integer)
+
 (defcustom elmacro-additional-recorded-functions '(copy-file
                                                    copy-directory
                                                    rename-file
@@ -66,6 +61,11 @@ is expected to return a modified list of commands."
   :group 'elmacro
   :type '(repeat symbol))
 
+(defcustom elmacro-unwanted-commands-regexps '("^(ido.*)$" "^(smex)$")
+  "Regexps used to filter unwanted commands."
+  :group 'elmacro
+  :type '(repeat regexp))
+
 (defcustom elmacro-special-objects '(("#<frame [^0]+\\(0x[0-9a-f]+\\)>" ",(elmacro-get-frame \"\\1\")")
                                      ("#<window \\([0-9]+\\)[^>]+>"     ",(elmacro-get-window \\1)")
                                      ("#<buffer \\([^>]+\\)>"           ",(get-buffer \"\\1\")"))
@@ -74,6 +74,18 @@ is expected to return a modified list of commands."
 This will be used as arguments for `replace-regexp-in-string'."
   :group 'elmacro
   :type '(repeat (list regexp string)))
+
+(defcustom elmacro-debug nil
+  "Set to true to turn debugging in buffer \"* elmacro debug *\"."
+  :group 'elmacro
+  :type 'boolean)
+
+(defun elmacro-process-commands (history)
+  "Apply `elmacro-processors' to HISTORY."
+  (let ((commands (reverse history)))
+    (--each elmacro-processors
+      (setq commands (funcall it commands)))
+    commands))
 
 (defun elmacro-processor-filter-unwanted (commands)
   "Remove unwanted commands using `elmacro-unwanted-commands-regexps'"
@@ -113,19 +125,6 @@ This will be used as arguments for `replace-regexp-in-string'."
            (car (read-from-string (s-replace "'(" "`(" str))))
          commands))
 
-(defun elmacro-setq-last-command-event ()
-  "Return a sexp setting up `last-command-event'."
-  (if (symbolp last-command-event)
-      `(setq last-command-event ',last-command-event)
-    `(setq last-command-event ,last-command-event)))
-
-(defun elmacro-extract-last-macro (history)
-  "Extract the last keyboard macro from HISTORY."
-  (let ((starters '(start-kbd-macro kmacro-start-macro kmacro-start-macro-or-insert-counter))
-        (finishers '(end-kbd-macro kmacro-end-macro kmacro-end-or-call-macro kmacro-end-and-call-macro)))
-    (elmacro-process-commands (-drop 1 (--take-while (not (-contains? starters (car it)))
-                                                     (--drop-while (not (-contains? finishers (car it))) history))))))
-
 (defun elmacro-get-frame (name)
   "Return the frame named NAME."
   (--first (s-matches? (format "^#<frame .* %s>$" name) (prin1-to-string it))
@@ -136,55 +135,21 @@ This will be used as arguments for `replace-regexp-in-string'."
   (--first (s-matches? (format "^#<window %d " n) (prin1-to-string it))
            (window-list)))
 
-(defun elmacro-process-commands (history)
-  "Apply `elmacro-processors' to HISTORY."
-  (let ((commands (reverse history)))
-    (--each elmacro-processors
-      (setq commands (funcall it commands)))
-    commands))
-
-(defun elmacro-show-defun (commands)
-  "Create a buffer containing a defun from COMMANDS."
-  (let* ((count (--count (s-starts-with? "* elmacro" (buffer-name it)) (buffer-list)))
-         (name (format "macro%d" count))
-         (buffer (get-buffer-create (format "* elmacro - %s *" name)))
-         (print-quoted t)
-         (print-length nil)
-         (print-level nil))
-    (set-buffer buffer)
-    (erase-buffer)
-    (insert (format "(defun %s ()\n" name))
-    (insert "(interactive)\n")
-    (insert (mapconcat 'prin1-to-string commands "\n"))
-    (insert ")\n")
-    (emacs-lisp-mode)
-    (indent-region (point-min) (point-max))
-    (pop-to-buffer buffer)
-    (goto-char (point-min))))
-
-(defun elmacro-quoted-arguments (args)
-  "Helper to correctly quote functions arguments of `elmacro-additional-recorded-functions'."
-  (--map-when (and (symbolp it)
-                   (not (keywordp it))
-                   (not (eq nil it))
-                   (not (eq t it)))
-              `(quote ,it) args))
-
-(defun elmacro-make-advice-lambda (function)
-  "Generate the `defadvice' lambda used to record FUNCTION.
-
-See the variable `elmacro-additional-recorded-functions'."
-  `(lambda (&rest args)
-     (!cons ,(list '\` (list function ',@(elmacro-quoted-arguments args)))
-            elmacro-command-history)))
-
-(defvar elmacro-debug nil
-  "Set to true to turn debugging in buffer \"* elmacro debug *\".")
+(defun elmacro-assert-enabled ()
+  "Ensure `elmacro-mode' is turned on."
+  (unless elmacro-mode
+    (error "elmacro is turned off")))
 
 (defun elmacro-debug-message (s &rest args)
   (when elmacro-debug
     (with-current-buffer (get-buffer-create "* elmacro - debug *")
       (insert (apply #'format s args) "\n"))))
+
+(defun elmacro-setq-last-command-event ()
+  "Return a sexp setting up `last-command-event'."
+  (if (symbolp last-command-event)
+      `(setq last-command-event ',last-command-event)
+    `(setq last-command-event ,last-command-event)))
 
 (defun elmacro-record-command (advised-function function &optional record keys)
   "Advice for `call-interactively' which makes it temporarily record
@@ -209,6 +174,22 @@ commands in variable `command-history'."
       (elmacro-debug-message "[%s] ----- STOP -----" function)
       retval)))
 
+(defun elmacro-quoted-arguments (args)
+  "Helper to correctly quote functions arguments of `elmacro-additional-recorded-functions'."
+  (--map-when (and (symbolp it)
+                   (not (keywordp it))
+                   (not (eq nil it))
+                   (not (eq t it)))
+              `(quote ,it) args))
+
+(defun elmacro-make-advice-lambda (function)
+  "Generate the `defadvice' lambda used to record FUNCTION.
+
+See the variable `elmacro-additional-recorded-functions'."
+  `(lambda (&rest args)
+     (!cons ,(list '\` (list function ',@(elmacro-quoted-arguments args)))
+            elmacro-command-history)))
+
 (defun elmacro-mode-on ()
   "Turn elmacro mode on."
   (--each elmacro-additional-recorded-functions
@@ -221,10 +202,31 @@ commands in variable `command-history'."
     (advice-remove it (elmacro-make-advice-lambda it)))
   (advice-remove 'call-interactively #'elmacro-record-command))
 
-(defun elmacro-assert-enabled ()
-  "Ensure `elmacro-mode' is turned on."
-  (unless elmacro-mode
-    (error "elmacro is turned off")))
+(defun elmacro-show-defun (commands)
+  "Create a buffer containing a defun from COMMANDS."
+  (let* ((count (--count (s-starts-with? "* elmacro" (buffer-name it)) (buffer-list)))
+         (name (format "macro%d" count))
+         (buffer (get-buffer-create (format "* elmacro - %s *" name)))
+         (print-quoted t)
+         (print-length nil)
+         (print-level nil))
+    (set-buffer buffer)
+    (erase-buffer)
+    (insert (format "(defun %s ()\n" name))
+    (insert "(interactive)\n")
+    (insert (mapconcat 'prin1-to-string commands "\n"))
+    (insert ")\n")
+    (emacs-lisp-mode)
+    (indent-region (point-min) (point-max))
+    (pop-to-buffer buffer)
+    (goto-char (point-min))))
+
+(defun elmacro-extract-last-macro (history)
+  "Extract the last keyboard macro from HISTORY."
+  (let ((starters '(start-kbd-macro kmacro-start-macro kmacro-start-macro-or-insert-counter))
+        (finishers '(end-kbd-macro kmacro-end-macro kmacro-end-or-call-macro kmacro-end-and-call-macro)))
+    (elmacro-process-commands (-drop 1 (--take-while (not (-contains? starters (car it)))
+                                                     (--drop-while (not (-contains? finishers (car it))) history))))))
 
 ;;;###autoload
 (defun elmacro-show-last-macro ()
