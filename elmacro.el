@@ -70,9 +70,9 @@ never stored."
   :group 'elmacro
   :type '(repeat regexp))
 
-(defcustom elmacro-special-objects '(("#<frame [^0]+\\(0x[0-9a-f]+\\)>" ",(elmacro-get-frame \"\\1\")")
-                                     ("#<window \\([0-9]+\\)[^>]+>"     ",(elmacro-get-window \\1)")
-                                     ("#<buffer \\([^>]+\\)>"           ",(get-buffer \"\\1\")"))
+(defcustom elmacro-special-objects '(("#<frame .+? \\(0x[0-9a-f]+\\)>" ",(elmacro-get-frame \"\\1\")")
+                                     ("#<window \\([0-9]+\\).*?>"      ",(elmacro-get-window \\1)")
+                                     ("#<buffer \\(.+?\\)>"            ",(get-buffer \"\\1\")"))
   "List of (regexp replacement) for special objects.
 
 This will be used as arguments for `replace-regexp-in-string'."
