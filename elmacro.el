@@ -57,7 +57,11 @@ is expected to return a modified list of commands."
                                                    rename-file
                                                    delete-file
                                                    make-directory)
-  "List of additional functions to record."
+  "List of non-interactive functions that you also want to be recorded.
+
+For example, `dired-copy-file' (the C key in dired) doesn't reads its
+arguments as an interactive specification, and thus the file name is
+never stored."
   :group 'elmacro
   :type '(repeat symbol))
 
