@@ -1,4 +1,4 @@
-;;; elmacro.el --- Convert keyboard macros to elisp
+;;; elmacro.el --- Convert keyboard macros to emacs lisp
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/elmacro
@@ -230,7 +230,7 @@ See the variable `elmacro-additional-recorded-functions'."
 
 ;;;###autoload
 (defun elmacro-show-last-macro ()
-  "Show the last macro as elisp."
+  "Show the last keyboard macro as emacs lisp."
   (interactive)
   (elmacro-assert-enabled)
   (-if-let (commands (elmacro-extract-last-macro elmacro-command-history))
@@ -239,7 +239,7 @@ See the variable `elmacro-additional-recorded-functions'."
 
 ;;;###autoload
 (defun elmacro-show-last-commands (&optional count)
-  "Take the latest COUNT commands and show them as elisp.
+  "Take the latest COUNT commands and show them as emacs lisp.
 
 This is basically a better version of `kmacro-edit-lossage'.
 
