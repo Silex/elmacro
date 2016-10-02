@@ -171,11 +171,11 @@ Before:
 
 ``` emacs-lisp
 (setq last-command-event 97)
-(self-insert 1)
+(self-insert-command 1)
 (setq last-command-event 98)
-(self-insert 1)
+(self-insert-command 1)
 (setq last-command-event 99)
-(self-insert 3)
+(self-insert-command 3)
 ```
 
 After:
