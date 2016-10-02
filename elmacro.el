@@ -126,7 +126,9 @@ This will be used as arguments for `replace-regexp-in-string'."
   (--map (let ((str (prin1-to-string it)))
            (--each elmacro-special-objects
              (setq str (eval `(replace-regexp-in-string ,@it str))))
-           (car (read-from-string (s-replace "'(" "`(" str))))
+           (condition-case nil
+               (car (read-from-string (s-replace "'(" "`(" str)))
+             (error `(ignore ,str))))
          commands))
 
 (defun elmacro-get-frame (name)
