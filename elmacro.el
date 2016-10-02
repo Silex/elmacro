@@ -36,6 +36,11 @@
 (defvar elmacro-command-history '()
   "Where elmacro process commands from variable `command-history'.")
 
+(defcustom elmacro-show-last-commands-default 30
+  "Number of commands shown by default in `elmacro-show-last-commands'."
+  :group 'elmacro
+  :type 'integer)
+
 (defcustom elmacro-unwanted-commands-regexps '("^(ido.*)$" "^(smex)$")
   "Regexps used to filter unwanted commands."
   :group 'elmacro
@@ -234,17 +239,21 @@ commands in variable `command-history'."
 (defun elmacro-show-last-commands (&optional count)
   "Take the latest COUNT commands and show them as elisp.
 
-The default number of commands shown is 300. You can change this
-number by using a numeric prefix argument or by using the
-universal argument, in which case it'll ask for how many in the
-minibuffer. See also `kmacro-edit-lossage'."
+This is basically a better version of `kmacro-edit-lossage'.
+
+The default number of commands shown is modifiable in variable
+`elmacro-show-last-commands-default'.
+
+You can also modify this number by using a numeric prefix argument or
+by using the universal argument, in which case it'll ask for how many
+in the minibuffer."
   (interactive
    (list
     (cond
      ((equal current-prefix-arg nil)
-      300)
+      elmacro-show-last-commands-default)
      ((equal current-prefix-arg '(4))
-      (read-number "How many commands?" 300))
+      (read-number "How many commands?" elmacro-show-last-commands-default))
      (t
       (prefix-numeric-value current-prefix-arg)))))
   (elmacro-assert-enabled)
