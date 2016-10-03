@@ -91,9 +91,17 @@ This will be used as arguments for `replace-regexp-in-string'."
       (setq commands (funcall it commands)))
     commands))
 
+(defun elmacro-pp-to-string (object)
+  "Like `pp-to-string', but make sure all options are set like desired."
+  (let ((pp-escape-newlines t)
+        (print-quoted t)
+        (print-length nil)
+        (print-level nil))
+    (pp-to-string object)))
+
 (defun elmacro-processor-filter-unwanted (commands)
   "Remove unwanted commands using `elmacro-unwanted-commands-regexps'"
-  (--remove (let ((str (prin1-to-string it)))
+  (--remove (let ((str (elmacro-pp-to-string it)))
               (--any? (s-matches? it str) elmacro-unwanted-commands-regexps))
             commands))
 
@@ -123,8 +131,7 @@ This will be used as arguments for `replace-regexp-in-string'."
 
 (defun elmacro-processor-handle-special-objects (commands)
   "Turn special objects into usable objects."
-  (--map (let ((print-quoted t)
-               (str (prin1-to-string it)))
+  (--map (let ((str (elmacro-pp-to-string it)))
            (--each elmacro-special-objects
              (setq str (eval `(replace-regexp-in-string ,@it str))))
            (condition-case nil
@@ -134,12 +141,12 @@ This will be used as arguments for `replace-regexp-in-string'."
 
 (defun elmacro-get-frame (name)
   "Return the frame named NAME."
-  (--first (s-matches? (format "^#<frame .* %s>$" name) (prin1-to-string it))
+  (--first (s-matches? (format "^#<frame .* %s>$" name) (elmacro-pp-to-string it))
            (frame-list)))
 
 (defun elmacro-get-window (n)
   "Return the window numbered N."
-  (--first (s-matches? (format "^#<window %d " n) (prin1-to-string it))
+  (--first (s-matches? (format "^#<window %d " n) (elmacro-pp-to-string it))
            (window-list)))
 
 (defun elmacro-assert-enabled ()
@@ -213,15 +220,12 @@ See the variable `elmacro-additional-recorded-functions'."
   "Create a buffer containing a defun from COMMANDS."
   (let* ((count (--count (s-starts-with? "* elmacro" (buffer-name it)) (buffer-list)))
          (name (format "macro%d" count))
-         (buffer (get-buffer-create (format "* elmacro - %s *" name)))
-         (print-quoted t)
-         (print-length nil)
-         (print-level nil))
+         (buffer (get-buffer-create (format "* elmacro - %s *" name))))
     (set-buffer buffer)
     (erase-buffer)
     (insert (format "(defun %s ()\n" name))
     (insert "(interactive)\n")
-    (insert (mapconcat 'prin1-to-string commands "\n"))
+    (insert (mapconcat 'elmacro-pp-to-string commands "\n"))
     (insert ")\n")
     (emacs-lisp-mode)
     (indent-region (point-min) (point-max))
