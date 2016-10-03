@@ -92,12 +92,14 @@ This will be used as arguments for `replace-regexp-in-string'."
     commands))
 
 (defun elmacro-pp-to-string (object)
-  "Like `pp-to-string', but make sure all options are set like desired."
+  "Like `pp-to-string', but make sure all options are set like desired.
+
+Also handles nil as parameter for defuns."
   (let ((pp-escape-newlines t)
         (print-quoted t)
         (print-length nil)
         (print-level nil))
-    (pp-to-string object)))
+    (replace-regexp-in-string "\\((defun +[^ ]+\\) +nil" "\\1 ()" (pp-to-string object))))
 
 (defun elmacro-processor-filter-unwanted (commands)
   "Remove unwanted commands using `elmacro-unwanted-commands-regexps'"
@@ -216,6 +218,12 @@ See the variable `elmacro-additional-recorded-functions'."
     (advice-remove it (elmacro-make-advice-lambda it)))
   (advice-remove 'call-interactively #'elmacro-record-command))
 
+(defun elmacro-make-defun (symbol commands)
+  "Makes a function named SYMBOL containing COMMANDS."
+  `(defun ,symbol ()
+     (interactive)
+     ,@commands))
+
 (defun elmacro-show-defun (commands)
   "Create a buffer containing a defun from COMMANDS."
   (let* ((count (--count (s-starts-with? "* elmacro" (buffer-name it)) (buffer-list)))
@@ -223,10 +231,7 @@ See the variable `elmacro-additional-recorded-functions'."
          (buffer (get-buffer-create (format "* elmacro - %s *" name))))
     (set-buffer buffer)
     (erase-buffer)
-    (insert (format "(defun %s ()\n" name))
-    (insert "(interactive)\n")
-    (insert (mapconcat 'elmacro-pp-to-string commands "\n"))
-    (insert ")\n")
+    (insert (elmacro-pp-to-string (elmacro-make-defun (make-symbol name) commands)))
     (emacs-lisp-mode)
     (indent-region (point-min) (point-max))
     (pop-to-buffer buffer)
