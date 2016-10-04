@@ -224,11 +224,9 @@ See the variable `elmacro-additional-recorded-functions'."
      (interactive)
      ,@commands))
 
-(defun elmacro-show-defun (commands)
-  "Create a buffer containing a defun from COMMANDS."
-  (let* ((count (--count (s-starts-with? "* elmacro" (buffer-name it)) (buffer-list)))
-         (name (format "macro%d" count))
-         (buffer (get-buffer-create (format "* elmacro - %s *" name))))
+(defun elmacro-show-defun (name commands)
+  "Create a buffer containing a defun named NAME from COMMANDS."
+  (let* ((buffer (generate-new-buffer (format "* elmacro - %s *" name))))
     (set-buffer buffer)
     (erase-buffer)
     (insert (elmacro-pp-to-string (elmacro-make-defun (make-symbol name) commands)))
@@ -245,12 +243,12 @@ See the variable `elmacro-additional-recorded-functions'."
                                                      (--drop-while (not (-contains? finishers (car it))) history))))))
 
 ;;;###autoload
-(defun elmacro-show-last-macro ()
-  "Show the last keyboard macro as emacs lisp."
-  (interactive)
+(defun elmacro-show-last-macro (name)
+  "Show the last macro as emacs lisp with NAME."
+  (interactive (list (read-string "Defun name: " "last-macro" nil "last-macro")))
   (elmacro-assert-enabled)
   (-if-let (commands (elmacro-extract-last-macro elmacro-command-history))
-      (elmacro-show-defun commands)
+      (elmacro-show-defun name commands)
     (message "No macros found. Please record one before using this command (F3/F4).")))
 
 ;;;###autoload
@@ -275,7 +273,7 @@ in the minibuffer."
      (t
       (prefix-numeric-value current-prefix-arg)))))
   (elmacro-assert-enabled)
-  (elmacro-show-defun (-take-last count (elmacro-process-commands elmacro-command-history))))
+  (elmacro-show-defun (format "last-%s-commands" count) (-take-last count (elmacro-process-commands elmacro-command-history))))
 
 ;;;###autoload
 (defun elmacro-clear-command-history ()
