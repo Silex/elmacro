@@ -154,7 +154,7 @@ Also handles nil as parameter for defuns."
 (defun elmacro-assert-enabled ()
   "Ensure `elmacro-mode' is turned on."
   (unless elmacro-mode
-    (error "elmacro is turned off")))
+    (error "elmacro is turned off! do `M-x elmacro-mode' first.")))
 
 (defun elmacro-debug-message (s &rest args)
   (when elmacro-debug
