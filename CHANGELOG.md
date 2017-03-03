@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Handle `self-insert-command` interceptors.
 - Add changelog
 
 ## 1.0.1 (2016-04-10)

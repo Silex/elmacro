@@ -182,7 +182,7 @@ commands in variable `command-history'."
            (cmd (car sexp)))
       (when record
         (elmacro-debug-message "[%s] recording %s" function cmd)
-        (when (eq cmd 'self-insert-command)
+        (when (or (eq cmd 'self-insert-command) (command-remapping 'self-insert-command))
           (!cons (elmacro-setq-last-command-event) elmacro-command-history))
         (!cons sexp elmacro-command-history)
         (!cdr command-history)
