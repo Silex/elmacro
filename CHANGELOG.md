@@ -29,7 +29,7 @@
 ## 0.2.0 (2014-07-07)
 
 - interactive function `elmacro-show-last-commands`
-- add #<frame>, #<window> and #<buffer> support
+- add `#<frame>`, `#<window>` and `#<buffer>` support
 
 ## 0.1.0 (2014-28-08)
 
