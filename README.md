@@ -51,7 +51,6 @@ or call it from your emacs lisp code.
   * [elmacro-processor-handle-special-objects](#elmacro-processor-handle-special-objects)
 * [Mouse events support](#mouse-events-support)
 * [Contributions welcome!](#contributions-welcome)
-* [Thanks](#thanks)
 
 ## Installation
 
@@ -233,9 +232,3 @@ instead (`elmacro-get-window` is a helper that returns the correct emacs window 
 
 Either as suggestions or as pull requests by opening tickets on the
 [issue tracker](https://github.com/Silex/elmacro/issues).
-
-## Thanks
-
-* [purcell](https://github.com/purcell) for better package description.
-* [syohex](https://github.com/syohex) for byte-compilation issues.
-* [Youngfrog](https://github.com/YoungFrog) for helping with `elmacro-make-advice-lambda`
