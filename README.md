@@ -49,7 +49,9 @@ or call it from your emacs lisp code.
   * [elmacro-processor-prettify-inserts](#elmacro-processor-prettify-inserts)
   * [elmacro-processor-concatenate-inserts](#elmacro-processor-concatenate-inserts)
   * [elmacro-processor-handle-special-objects](#elmacro-processor-handle-special-objects)
-* [Mouse events support](#mouse-events-support)
+* [FAQ](#faq)
+  * [org-mode, smartparens, etc](#org-mode-smartparens-etc)
+  * [Mouse events](#mouse-events)
 * [Contributions welcome!](#contributions-welcome)
 
 ## Installation
@@ -167,6 +169,8 @@ Remove unwanted commands using [elmacro-unwanted-commands-regexps](#elmacro-unwa
 ### elmacro-processor-prettify-inserts
 
 Transform all occurences of `self-insert-command` into `insert`.
+This filter should be not be enabled with packages that
+advice `self-insert-command`, see the [FAQ](#org-mode-smartparens-etc) for more information.
 
 Before:
 
@@ -209,7 +213,17 @@ After:
 
 Turn special objects into usable objects using [elmacro-special-objects](#elmacro-special-objects).
 
-## Mouse events support
+## FAQ
+
+### org-mode, smartparens, etc
+
+Normally `elmacro` works reasonably well with these, but if you want to ensure the most accurate experience you should
+disable the [elmacro-processor-prettify-inserts](#elmacro-processor-prettify-inserts) processor (see [elmacro-processors](#elmacro-processors)).
+
+This is necessary because these packages usually advice `self-insert-command`, and by transforming
+it into an `insert` the advice does not run and we miss functionnality.
+
+### Mouse events
 
 A nice addition to normal macros is that mouse events (clicks / scroll)
 are also recorded and elmacro can figure which emacs window / frame was the target.
