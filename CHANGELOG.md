@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 (2017-03-12)
 
 - Handle `self-insert-command` interceptors.
 - Add changelog
