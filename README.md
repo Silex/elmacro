@@ -1,3 +1,6 @@
+[![MELPA](http://melpa.org/packages/elmacro-badge.svg)](http://melpa.org/#/elmacro)
+[![MELPA Stable](http://stable.melpa.org/packages/elmacro-badge.svg)](http://stable.melpa.org/#/elmacro)
+
 # elmacro
 
 Shows keyboard macros or latest interactive commands as emacs lisp.
