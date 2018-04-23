@@ -1,4 +1,4 @@
-;;; elmacro.el --- Convert keyboard macros to emacs lisp
+;;; elmacro.el --- Convert keyboard macros to emacs lisp  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/elmacro
