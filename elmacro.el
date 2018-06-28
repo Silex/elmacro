@@ -135,7 +135,8 @@ Also handles nil as parameter for defuns."
   "Turn special objects into usable objects."
   (--map (let ((str (elmacro-pp-to-string it)))
            (--each elmacro-special-objects
-             (setq str (eval `(replace-regexp-in-string ,@it str))))
+             (-let (((regex rep) it))
+               (setq str (replace-regexp-in-string regex rep str))))
            (condition-case nil
                (car (read-from-string (s-replace "'(" "`(" str)))
              (error `(ignore ,str))))
