@@ -75,7 +75,7 @@ To enable elmacro, do <kbd>M-x elmacro-mode</kbd> or enable it from your config 
 
 <kbd>M-x elmacro-show-last-macro</kbd> shows your latest macro as emacs lisp.
 
-In order to use this, you must firt record a
+In order to use this, you must first record a
 [keyboard macro](https://www.gnu.org/software/emacs/manual/html_node/emacs/Keyboard-Macros.html).
 Then, when you do <kbd>M-x elmacro-show-last-macro</kbd> it will ask
 you for a defun name and show the latest macro as emacs lisp.
