@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 (2019-08-23)
+
+- Use lexical binding.
+- Fix typos.
+
 ## 1.1.0 (2017-03-12)
 
 - Handle `self-insert-command` interceptors.
