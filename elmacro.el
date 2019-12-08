@@ -91,6 +91,8 @@ This will be used as arguments for `replace-regexp-in-string'."
       (setq commands (funcall it commands)))
     commands))
 
+(defvar pp-escape-newlines)
+
 (defun elmacro-pp-to-string (object)
   "Like `pp-to-string', but make sure all options are set like desired.
 
