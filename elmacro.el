@@ -29,7 +29,7 @@
 (require 'dash)
 
 (defgroup elmacro nil
-  "Show macros as emacs lisp."
+  "Show macros as Emacs Lisp."
   :group 'keyboard
   :group 'convenience)
 
@@ -104,7 +104,7 @@ Also handles nil as parameter for defuns."
     (replace-regexp-in-string "\\((defun +[^ ]+\\) +nil" "\\1 ()" (pp-to-string object))))
 
 (defun elmacro-processor-filter-unwanted (commands)
-  "Remove unwanted commands using `elmacro-unwanted-commands-regexps'"
+  "Remove unwanted commands using `elmacro-unwanted-commands-regexps'."
   (--remove (let ((str (elmacro-pp-to-string it)))
               (--any? (s-matches? it str) elmacro-unwanted-commands-regexps))
             commands))
@@ -123,7 +123,7 @@ Also handles nil as parameter for defuns."
     (reverse result)))
 
 (defun elmacro-processor-concatenate-inserts (commands)
-  "Concatenate multiple inserts together"
+  "Concatenate multiple inserts together."
   (let (result)
     (--each commands
       (-let (((previous-command previous-args) (car result))
@@ -222,7 +222,7 @@ See the variable `elmacro-additional-recorded-functions'."
   (advice-remove 'call-interactively #'elmacro-record-command))
 
 (defun elmacro-make-defun (symbol commands)
-  "Makes a function named SYMBOL containing COMMANDS."
+  "Make a function named SYMBOL containing COMMANDS."
   `(defun ,symbol ()
      (interactive)
      ,@commands))
@@ -247,7 +247,7 @@ See the variable `elmacro-additional-recorded-functions'."
 
 ;;;###autoload
 (defun elmacro-show-last-macro (name)
-  "Show the last macro as emacs lisp with NAME."
+  "Show the last macro as Emacs Lisp with NAME."
   (interactive (list (read-string "Defun name: " "last-macro" nil "last-macro")))
   (elmacro-assert-enabled)
   (-if-let (commands (elmacro-extract-last-macro elmacro-command-history))
@@ -256,7 +256,7 @@ See the variable `elmacro-additional-recorded-functions'."
 
 ;;;###autoload
 (defun elmacro-show-last-commands (&optional count)
-  "Take the latest COUNT commands and show them as emacs lisp.
+  "Take the latest COUNT commands and show them as Emacs Lisp.
 
 This is basically a better version of `kmacro-edit-lossage'.
 
