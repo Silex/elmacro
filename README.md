@@ -39,7 +39,7 @@ or call it from your emacs lisp code.
 * [Commands](#commands)
   * [elmacro-show-last-macro](#elmacro-show-last-macro)
   * [elmacro-show-last-commands](#elmacro-show-last-commands)
-  * [elmacro-clear-recorded-commands](#elmacro-clear-recorded-commands)
+  * [elmacro-clear-command-history](#elmacro-clear-command-history)
 * [Customization](#customization)
   * [elmacro-processors](#elmacro-processors)
   * [elmacro-show-last-commands-default](#elmacro-show-last-commands-default)
@@ -93,7 +93,7 @@ You can also modify this number by using a numeric prefix argument or
 by using the universal argument, in which case it’ll ask for how many
 in the minibuffer.
 
-### elmacro-clear-recorded-commands
+### elmacro-clear-command-history
 
 Clears the list of recorded commands.
 
