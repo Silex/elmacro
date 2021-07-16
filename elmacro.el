@@ -65,7 +65,7 @@ never stored."
   :group 'elmacro
   :type '(repeat symbol))
 
-(defcustom elmacro-unwanted-commands-regexps '("^(ido.*)$" "^(smex)$")
+(defcustom elmacro-unwanted-commands-regexps '("^(ido.*)$" "^(smex)$" "^(amx)$" "^(file-notify-.*)$")
   "Regexps used to filter unwanted commands."
   :group 'elmacro
   :type '(repeat regexp))
