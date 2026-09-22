@@ -45,7 +45,7 @@
 Each function is passed the list of commands meant to be displayed and
 is expected to return a modified list of commands."
   :group 'elmacro
-  :type '(repeat symbol))
+  :type '(repeat function))
 
 (defcustom elmacro-show-last-commands-default 30
   "Number of commands shown by default in `elmacro-show-last-commands'."
